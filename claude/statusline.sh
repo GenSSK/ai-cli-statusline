@@ -18,6 +18,10 @@
 #   STATUSLINE_PROBE=0         Disable the Haiku probe fallback (no network access)
 #   STATUSLINE_CACHE_FILE=...  Cache path (default: /tmp/claude-statusline-ratelimits.json)
 
+# Windows (Git Bash): jq.exe prints CRLF line endings; strip the CR.
+case "$OSTYPE" in
+  msys*|cygwin*) jq() { command jq "$@" | tr -d '\r'; return "${PIPESTATUS[0]}"; } ;;
+esac
 input=$(cat)
 now=$(date +%s)
 [ -n "$STATUSLINE_TZ" ] && export TZ="$STATUSLINE_TZ"
@@ -178,7 +182,7 @@ fetch_usage() {
 
 cache_age() {
   [ -f "$CACHE_FILE" ] || { echo 999999; return; }
-  echo $(( now - $(stat -f '%m' "$CACHE_FILE" 2>/dev/null || stat -c '%Y' "$CACHE_FILE" 2>/dev/null || echo 0) ))
+  echo $(( now - $(stat -c '%Y' "$CACHE_FILE" 2>/dev/null || stat -f '%m' "$CACHE_FILE" 2>/dev/null || echo 0) ))
 }
 
 if [ -n "$IN_5H_PCT$IN_7D_PCT" ]; then
