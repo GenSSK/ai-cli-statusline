@@ -1,0 +1,27 @@
+# Codex CLI status line (tested with codex-cli 0.158.0)
+#
+# Codex does not run custom scripts for its status line; it shows an ordered
+# list of built-in items. This mirrors the Claude Code version as closely as possible:
+#   model + reasoning effort │ fast mode │ context used │ cost │ 5h limit │ weekly limit │ branch │ dir
+#
+# Merge the [tui] keys below into ~/.codex/config.toml
+# (if you already have a [tui] table, add the keys to it instead of adding a second [tui]).
+
+[tui]
+status_line = [
+  "model-with-reasoning",
+  "fast-mode",
+  "context-used",
+  "estimated-thread-cost",
+  "five-hour-limit",
+  "weekly-limit",
+  "git-branch",
+  "current-dir",
+]
+status_line_use_colors = true
+
+# Other available items (codex-cli 0.158.0):
+#   project-name, run-state, thread-title, context-remaining, codex-version,
+#   used-tokens, total-input-tokens, total-output-tokens, thread-credits,
+#   thread-id, reasoning, task-progress
+# You can also pick items interactively with /statusline inside Codex.
