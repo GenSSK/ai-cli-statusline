@@ -6,7 +6,7 @@ Claude Code と Codex CLI のステータスライン設定です。
 *Status line for Claude Code and Codex CLI. No special fonts required. Works on macOS, Linux and Windows.*
 
 ```
-Opus 5.5 v2.1.285 [high] │ █░░░░░░░░░ 12% (123.0k/1.0M) │ $1.2345 │ +10 -3
+Opus 5.5 v2.1.285 [high] │ █░░░░░░░░░ 12% (123.0k/1.0M) │ $1.2345 │ +10 -3        ~/a/status_line
 ⏱ 5h  ▰▰▰▰▰▰▰▱▱▱  72% Resets 8:45pm JST
 📅 7d  ▰▰▱▱▱▱▱▱▱▱  18% Resets Oct 6 at 4am JST
 ```
@@ -83,11 +83,12 @@ curl -fsSL https://raw.githubusercontent.com/GenSSK/ai-cli-statusline/main/insta
 
 | 行 | 内容 |
 | - | - |
-| 1 | モデル名・バージョン・effort（fast モード時は ⚡fast）│ コンテキスト使用率バー（使用トークン/上限）│ セッションのコスト │ 追加/削除行数 |
+| 1 | モデル名・バージョン・effort（fast モード時は ⚡fast）│ コンテキスト使用率バー（使用トークン/上限）│ セッションのコスト │ 追加/削除行数 … 右端に現在のディレクトリ（fish 風） |
 | 2 | 5 時間レート制限の使用率とリセット時刻 |
 | 3 | 7 日間レート制限の使用率とリセット時刻 |
 
 - 使用率 50% 以上で黄色、80% 以上で赤になります。
+- ディレクトリは fish シェル風に、途中のフォルダを 1 文字に省略します（`~/ai-global/status_line` → `~/a/status_line`、`~/.config/fish` → `~/.c/fish`）。画面幅が足りないときは表示しません。
 - 5h / 7d は claude.ai の **Pro / Max プラン**でのみ表示されます（API キー利用時は `--%`）。
 
 ### 設定（環境変数・任意）
@@ -96,6 +97,7 @@ curl -fsSL https://raw.githubusercontent.com/GenSSK/ai-cli-statusline/main/insta
 | - | - | - |
 | `STATUSLINE_TZ` | システムのタイムゾーン | リセット時刻の表示タイムゾーン（例: `Asia/Tokyo`） |
 | `STATUSLINE_PROBE` | `1` | `0` にするとフォールバックの API 問い合わせを無効化（下記参照） |
+| `STATUSLINE_RIGHT_MARGIN` | `4` | ディレクトリ表示の右端の余白（桁数）。右端で折り返す・寄りすぎる場合に調整 |
 | `STATUSLINE_CACHE_FILE` | `/tmp/claude-statusline-ratelimits.json` | レート制限のキャッシュファイル |
 
 `~/.claude/settings.json` の command で指定できます。

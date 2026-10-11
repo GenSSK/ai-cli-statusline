@@ -17,6 +17,7 @@
 #   STATUSLINE_TZ=Asia/Tokyo   Time zone for reset times (default: system time zone)
 #   STATUSLINE_PROBE=0         Disable the Haiku probe fallback (no network access)
 #   STATUSLINE_CACHE_FILE=...  Cache path (default: /tmp/claude-statusline-ratelimits.json)
+#   STATUSLINE_RIGHT_MARGIN=4  Right margin (columns) for the directory on line 1
 
 # Windows (Git Bash): jq.exe prints CRLF line endings; strip the CR.
 case "$OSTYPE" in
@@ -31,6 +32,7 @@ now=$(date +%s)
 eval "$(echo "$input" | jq -r '
   "model=" + (.model.display_name // "Unknown" | @sh),
   "version=" + (.version // "" | @sh),
+  "cwd=" + (.workspace.current_dir // .cwd // "" | @sh),
   "context_size=" + (.context_window.context_window_size // 200000 | tostring | @sh),
   "used_pct=" + (.context_window.used_percentage // 0 | tostring | @sh),
   "input_tokens=" + ((.context_window.current_usage // {}) as $u
@@ -101,6 +103,70 @@ line1=$(printf "%b │ ${color}%s %d%%${reset} (%s/%s) │ %s │ +%d -%d" \
   "$model_str" "$bar" "$pct_int" \
   "$(fmt $current_used)" "$(fmt $context_size)" \
   "$cost_str" "$added" "$removed")
+
+# ---------- Current directory (fish style, right-aligned on line 1) ----------
+# ~/ai-global/status_line -> ~/a/status_line  (dot dirs keep 2 chars: ~/.c/fish)
+fish_path() {
+  local LC_ALL=C   # byte-wise string ops; multibyte chars are handled below
+  local p="${1//\\//}" home h out="" i n b
+  for home in "$HOME" "$(command -v cygpath >/dev/null 2>&1 && cygpath -m "$HOME")"; do
+    [ -z "$home" ] && continue
+    case "$p" in
+      "$home") p="~"; break ;;
+      "$home"/*) p="~${p#"$home"}"; break ;;
+    esac
+  done
+  local IFS=/
+  local -a parts
+  read -r -a parts <<< "$p"
+  [ "${p:0:1}" = "/" ] && out="/"
+  n=${#parts[@]}
+  for ((i = 0; i < n; i++)); do
+    local part="${parts[$i]}"
+    [ -z "$part" ] && continue
+    if [ "$i" -lt $((n - 1)) ]; then
+      local lead=""
+      if [ "${part:0:1}" = "." ]; then lead="."; part="${part:1}"; fi
+      # first character = 1-4 bytes depending on the UTF-8 lead byte
+      b=$(printf '%d' "'${part:0:1}")
+      [ "$b" -lt 0 ] && b=$((b + 256))
+      if   [ "$b" -ge 240 ]; then part="${part:0:4}"
+      elif [ "$b" -ge 224 ]; then part="${part:0:3}"
+      elif [ "$b" -ge 192 ]; then part="${part:0:2}"
+      else part="${part:0:1}"; fi
+      out+="${lead}${part}/"
+    else
+      out+="$part"
+    fi
+  done
+  printf '%s' "${out:-/}"
+}
+
+# Display width: ASCII = 1, 2-byte UTF-8 = 1, 3/4-byte (CJK, emoji) = 2
+str_width() {
+  local s n1 n2 n34
+  s=$(printf '%s' "$1" | LC_ALL=C sed $'s/\x1b\\[[0-9;]*m//g')
+  n1=$(printf '%s' "$s" | LC_ALL=C tr -d '\200-\377' | wc -c)
+  n2=$(printf '%s' "$s" | LC_ALL=C tr -cd '\300-\337' | wc -c)
+  n34=$(printf '%s' "$s" | LC_ALL=C tr -cd '\340-\367' | wc -c)
+  echo $(( n1 + n2 + 2 * n34 ))
+}
+
+if [ -n "$cwd" ]; then
+  dir_str=$(fish_path "$cwd")
+  dir_col="\033[32m"
+  if [ -n "$COLUMNS" ] && [ "$COLUMNS" -gt 0 ] 2>/dev/null; then
+    # Line 1 is box-drawing chars (width 1) + ASCII, plus ⚡ (width 2) in fast mode
+    w1=$(printf '%s' "$line1" | LC_ALL=C sed $'s/\x1b\\[[0-9;]*m//g' | LC_ALL=C tr -d '\200-\277' | wc -c)
+    [ "$fast_mode" = "true" ] && w1=$((w1 + 1))
+    gap=$(( COLUMNS - ${STATUSLINE_RIGHT_MARGIN:-4} - w1 - $(str_width "$dir_str") ))
+    if [ "$gap" -ge 2 ]; then
+      line1+=$(printf "%${gap}s${dir_col}%s${reset}" "" "$dir_str")
+    fi
+  else
+    line1+=$(printf " │ ${dir_col}%s${reset}" "$dir_str")
+  fi
+fi
 
 # ---------- Rate limits ----------
 # Priority: stdin .rate_limits > cache (window not yet reset) > Haiku probe
