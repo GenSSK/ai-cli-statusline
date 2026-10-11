@@ -154,17 +154,22 @@ str_width() {
 
 if [ -n "$cwd" ]; then
   dir_str=$(fish_path "$cwd")
-  dir_col="\033[32m"
+  # Sky blue: parents in a deeper blue, current dir in bold sky blue (256 colors)
+  case "$dir_str" in
+    */?*) dir_parent="${dir_str%/*}/"; dir_last="${dir_str##*/}" ;;
+    *)    dir_parent=""; dir_last="$dir_str" ;;
+  esac
+  dir_fmt="\033[38;5;74m${dir_parent//%/%%}\033[1;38;5;117m${dir_last//%/%%}${reset}"
   if [ -n "$COLUMNS" ] && [ "$COLUMNS" -gt 0 ] 2>/dev/null; then
     # Line 1 is box-drawing chars (width 1) + ASCII, plus ⚡ (width 2) in fast mode
     w1=$(printf '%s' "$line1" | LC_ALL=C sed $'s/\x1b\\[[0-9;]*m//g' | LC_ALL=C tr -d '\200-\277' | wc -c)
     [ "$fast_mode" = "true" ] && w1=$((w1 + 1))
     gap=$(( COLUMNS - ${STATUSLINE_RIGHT_MARGIN:-4} - w1 - $(str_width "$dir_str") ))
     if [ "$gap" -ge 2 ]; then
-      line1+=$(printf "%${gap}s${dir_col}%s${reset}" "" "$dir_str")
+      line1+=$(printf "%${gap}s${dir_fmt}" "")
     fi
   else
-    line1+=$(printf " │ ${dir_col}%s${reset}" "$dir_str")
+    line1+=$(printf " │ ${dir_fmt}")
   fi
 fi
 
