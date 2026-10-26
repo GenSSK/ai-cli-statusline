@@ -6,7 +6,7 @@ Claude Code と Codex CLI のステータスライン設定です。
 *Status line for Claude Code and Codex CLI. No special fonts required. Works on macOS, Linux and Windows.*
 
 ```
-Opus 5.5 v2.1.285 [high] │ █░░░░░░░░░ 12% (123.0k/1.0M) │ $1.2345 │ +10 -3        ~/a/status_line
+Opus 5.5 v2.1.285 [high] │ █░░░░░░░░░ 12% (123.0k/1.0M) │ $1.2345 │ +10 -3 │ 3f2a9c1e-8b4d-4e6f-a1b2-c3d4e5f60718        ~/a/status_line
 ⏱ 5h  ▰▰▰▰▰▰▰▱▱▱  72% Resets 8:45pm JST
 📅 7d  ▰▰▱▱▱▱▱▱▱▱  18% Resets Oct 6 at 4am JST
 ```
@@ -83,11 +83,12 @@ curl -fsSL https://raw.githubusercontent.com/GenSSK/ai-cli-statusline/main/insta
 
 | 行 | 内容 |
 | - | - |
-| 1 | モデル名・バージョン・effort（fast モード時は ⚡fast）│ コンテキスト使用率バー（使用トークン/上限）│ セッションのコスト │ 追加/削除行数 … 右端に現在のディレクトリ（fish 風） |
+| 1 | モデル名・バージョン・effort（fast モード時は ⚡fast）│ コンテキスト使用率バー（使用トークン/上限）│ セッションのコスト │ 追加/削除行数 │ セッション ID … 右端に現在のディレクトリ（fish 風） |
 | 2 | 5 時間レート制限の使用率とリセット時刻 |
 | 3 | 7 日間レート制限の使用率とリセット時刻 |
 
 - 使用率 50% 以上で黄色、80% 以上で赤になります。
+- セッション ID は `claude --resume <セッションID>` でそのセッションを再開するときに使えます。
 - ディレクトリは fish シェル風に、途中のフォルダを 1 文字に省略します（`~/ai-global/status_line` → `~/a/status_line`、`~/.config/fish` → `~/.c/fish`）。画面幅が足りないときは表示しません。
 - 5h / 7d は claude.ai の **Pro / Max プラン**でのみ表示されます（API キー利用時は `--%`）。
 
