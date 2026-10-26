@@ -1,6 +1,6 @@
 #!/bin/bash
 # Claude Code statusline script (improved)
-# Line 1: Model vVersion [effort] │ [context bar] XX% (used/total) │ $cost │ +added -removed
+# Line 1: Model vVersion [effort] │ [context bar] XX% (used/total) │ $cost │ +added -removed │ session_id
 # Line 2: 5h rate limit progress bar
 # Line 3: 7d rate limit progress bar
 #
@@ -12,6 +12,7 @@
 #   - Cached values whose window has already reset are discarded.
 #   - 0% is shown as 0% (previously shown as --%).
 #   - effort level / fast mode are shown on line 1.
+#   - session ID is shown on line 1 (after +added -removed).
 #
 # Environment variables (optional):
 #   STATUSLINE_TZ=Asia/Tokyo   Time zone for reset times (default: system time zone)
@@ -44,6 +45,7 @@ eval "$(echo "$input" | jq -r '
   "removed=" + (.cost.total_lines_removed // 0 | tostring | @sh),
   "effort=" + (.effort.level // "" | @sh),
   "fast_mode=" + (.fast_mode // false | tostring | @sh),
+  "session_id=" + (.session_id // "" | @sh),
   "IN_5H_PCT=" + (.rate_limits.five_hour.used_percentage // "" | tostring | @sh),
   "IN_5H_RESET=" + (.rate_limits.five_hour.resets_at // "" | tostring | @sh),
   "IN_7D_PCT=" + (.rate_limits.seven_day.used_percentage // "" | tostring | @sh),
@@ -103,6 +105,7 @@ line1=$(printf "%b │ ${color}%s %d%%${reset} (%s/%s) │ %s │ +%d -%d" \
   "$model_str" "$bar" "$pct_int" \
   "$(fmt $current_used)" "$(fmt $context_size)" \
   "$cost_str" "$added" "$removed")
+[ -n "$session_id" ] && line1+=$(printf " │ \033[2m%s${reset}" "$session_id")
 
 # ---------- Current directory (fish style, right-aligned on line 1) ----------
 # ~/ai-global/status_line -> ~/a/status_line  (dot dirs keep 2 chars: ~/.c/fish)
