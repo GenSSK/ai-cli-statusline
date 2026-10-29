@@ -50,7 +50,13 @@ if (-not (Get-Command jq -ErrorAction SilentlyContinue)) {
 Write-Host '==> jq: found'
 
 # ---------- Run install.sh in Git Bash ----------
-$tmp = Join-Path $env:TEMP 'ai-cli-statusline-install.sh'
-Invoke-WebRequest -UseBasicParsing "$RepoRaw/install.sh" -OutFile $tmp
-& $bash $tmp.Replace('\', '/') @args
-Remove-Item $tmp -ErrorAction SilentlyContinue
+# From a cloned repo, use the local install.sh (it then copies the local files too).
+$local = if ($PSScriptRoot) { Join-Path $PSScriptRoot 'install.sh' }
+if ($local -and (Test-Path $local)) {
+    & $bash $local.Replace('\', '/') @args
+} else {
+    $tmp = Join-Path $env:TEMP 'ai-cli-statusline-install.sh'
+    Invoke-WebRequest -UseBasicParsing "$RepoRaw/install.sh" -OutFile $tmp
+    & $bash $tmp.Replace('\', '/') @args
+    Remove-Item $tmp -ErrorAction SilentlyContinue
+}

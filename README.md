@@ -32,6 +32,19 @@ curl -fsSL https://raw.githubusercontent.com/GenSSK/ai-cli-statusline/main/insta
 irm https://raw.githubusercontent.com/GenSSK/ai-cli-statusline/main/install.ps1 | iex
 ```
 
+リポジトリを clone して手元の `install.ps1` を実行する場合は、次のようにします。
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1
+```
+
+`.\install.ps1` と直接実行すると、Windows の初期設定では `install.ps1 cannot be loaded because running scripts is disabled on this system`（日本語版では「このシステムではスクリプトの実行が無効になっているため、ファイル ...\install.ps1 を読み込むことができません」）と出て止まります。
+上の書き方ならその場限りで実行を許可します。毎回 `.\install.ps1` で実行したい場合は、先に次の 1 行で現在のユーザーにだけローカルのスクリプトの実行を許可してください（ワンライナーの `irm ... | iex` はこの設定がなくても動きます）。
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
 インストール後、Claude Code / Codex を再起動すると表示されます。
 
 ### 事前に必要なもの

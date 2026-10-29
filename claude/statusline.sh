@@ -21,8 +21,17 @@
 #   STATUSLINE_RIGHT_MARGIN=4  Right margin (columns) for the directory on line 1
 
 # Windows (Git Bash): jq.exe prints CRLF line endings; strip the CR.
+# A jq installed by winget is missing from PATH when Claude Code was started
+# from a terminal opened before the install, so look in winget's folders too.
 case "$OSTYPE" in
-  msys*|cygwin*) jq() { command jq "$@" | tr -d '\r'; return "${PIPESTATUS[0]}"; } ;;
+  msys*|cygwin*)
+    if ! command -v jq >/dev/null 2>&1 && [ -n "$LOCALAPPDATA" ]; then
+      winget_dir=$(cygpath -u "$LOCALAPPDATA" 2>/dev/null)/Microsoft/WinGet
+      for d in "$winget_dir/Links" "$winget_dir"/Packages/jqlang.jq_*; do
+        [ -x "$d/jq.exe" ] && { PATH="$PATH:$d"; break; }
+      done
+    fi
+    jq() { command jq "$@" | tr -d '\r'; return "${PIPESTATUS[0]}"; } ;;
 esac
 input=$(cat)
 now=$(date +%s)
